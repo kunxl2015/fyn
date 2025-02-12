@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django-specific files
+*.sqlite3
+db.sqlite3
+/media/
+*.log
+
+# Environment variables and secrets
+.env
+.env.local
+config/settings/local.py  # If you store local settings separately
+
+# Virtual environment
+venv/
+env/
+
+# Editor and OS-specific files
+*.swp  # Vim swap files
+*.swo
+.DS_Store  # macOS
+Thumbs.db  # Windows
+
+# Static & Media files (optional if using external storage like AWS S3)
+staticfiles/
+media/
+
+# Migrations (optional: keep initial migrations)
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Vim Jupyter extension (jukit)
+.jukit/
+
+# VSCode and JetBrains (PyCharm) project files
+.vscode/
+.idea/
+
+# Pipenv, Poetry, and other virtual environments
+Pipfile
+Pipfile.lock
+poetry.lock
