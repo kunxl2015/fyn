@@ -5,6 +5,7 @@ from vehicles.models import Vehicle
 # Register your models here.
 
 class VehilcleAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['id', 'make', 'model', 'issue_description', 'repair_description', 'status']
+    search_fields = ['make', 'model', 'status']
 
-admin.register(Vehicle, VehilcleAdmin)
+admin.site.register(Vehicle, VehilcleAdmin)
