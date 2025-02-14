@@ -4,5 +4,5 @@ from revenue import views
 
 urlpatterns = [
     path('', views.get_routes),
-    path('<id:int>/', views.get_revenue)
+    path('<int:id>/', views.get_revenue)
 ]
