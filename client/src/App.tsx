@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route} from "react-router-dom";
+import { BrowserRouter as Router, Navigate, Routes, Route} from "react-router-dom";
 import Sidebar from "./components/sidebar";
 import { RevenuePage, PartsPage, VehiclesPage } from "./pages";
 
@@ -8,6 +8,7 @@ export default function App() {
 			<div className="flex h-screen bg-gray-50">
 				<Sidebar />
 				<Routes>
+					<Route path="*" element={<Navigate to="/revenue" />} />
 					<Route path="/revenue" element={<RevenuePage />} />
 					<Route path="/parts" element={<PartsPage />} />
 					<Route path="/vehicles" element={<VehiclesPage />} />

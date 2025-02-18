@@ -1,108 +1,135 @@
-import { useState, Fragment } from "react";
-import { Dialog, Transition, Button } from "@headlessui/react";
+import { useEffect, useState } from "react";
+import { Card, Modal } from "../components";
+import { Button } from "@headlessui/react";
+import { fetchParts, registerPart } from "../utils/api";
 
-const dummyParts = [
-	{
-		id: 1,
-		name: "Brake Pad",
-		image: "https://via.placeholder.com/150",
-		purchasePrice: "$50",
-		repairPrice: "$20",
-	},
-	{
-		id: 2,
-		name: "Engine Oil",
-		image: "https://via.placeholder.com/150",
-		purchasePrice: "$30",
-		repairPrice: "$10",
-	},
-	{
-		id: 3,
-		name: "Air Filter",
-		image: "https://via.placeholder.com/150",
-		purchasePrice: "$25",
-		repairPrice: "$8",
-	},
-];
+interface Part {
+	name: string;
+	image: string;
+	purchasePrice: number;
+	repairPrice: number;
+}
 
 export default function PartsPage() {
-	const [selectedPart, setSelectedPart] = useState(null);
-	const [isOpen, setIsOpen] = useState(false);
+	const [parts, setParts] = useState<Part[]>([]);
+	const [part, setPart] = useState<Part>({
+		name: "",
+		image: "",
+		purchasePrice: 0,
+		repairPrice: 0,
+	});
+	const [selectedPart, setSelectedPart] = useState<Part | null>(null);
+	const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-	const openModal = (part) => {
+	useEffect(() => {
+		fetchParts()
+			.then((response) => {
+				setParts(response);
+			})
+			.catch((error) => {
+				console.error(error);
+			});
+	}, []);
+
+	function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+		const { name, value } = e.target;
+		setPart((prev) => ({
+			...prev,
+			[name]: name === "purchasePrice" || name === "repairPrice" ? parseFloat(value) || 0 : value,
+		}));
+	}
+
+	function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+		if (e.target.files && e.target.files[0]) {
+			const file = e.target.files[0];
+			const reader = new FileReader();
+
+			if(file){
+				reader.readAsDataURL(file)
+			}
+
+			reader.onload = () => {
+				setPart((prev) => ({
+					...prev,
+					image: reader.result as string
+				}))
+			}
+		}
+	}
+
+	function addPart() {
+		registerPart(part);
+		window.location.reload()
+	}
+
+	function openViewModal(part: Part) {
 		setSelectedPart(part);
-		setIsOpen(true);
-	};
-
-	const closeModal = () => {
-		setIsOpen(false);
-		setSelectedPart(null);
-	};
+		setIsViewModalOpen(true);
+	}
 
 	return (
-		<div className="p-6">
-			<h1 className="text-2xl font-bold mb-4">Parts</h1>
-			<Button className="mb-4 px-4 py-2 bg-blue-500 text-white rounded">Add Part</Button>
-			<div className="grid grid-cols-3 gap-4">
-				{dummyParts.map((part) => (
-					<div
-						key={part.id}
-						className="border rounded-lg p-4 cursor-pointer shadow-md hover:shadow-lg transition"
-						onClick={() => openModal(part)}
-					>
-						<img src={part.image} alt={part.name} className="w-full h-24 object-cover rounded" />
-						<h2 className="text-lg font-semibold mt-2">{part.name}</h2>
-						<p className="text-sm text-gray-600">Purchase Price: {part.purchasePrice}</p>
-						<p className="text-sm text-gray-600">Repair Price: {part.repairPrice}</p>
-					</div>
+		<div className="p-6 max-w-4xl mx-auto">
+			<h1 className="text-2xl font-bold mb-4 text-center">Parts</h1>
+			<button className="mb-4 px-4 py-2 bg-blue-500 text-white rounded w-full sm:w-auto" onClick={() => setIsAddModalOpen(true)}>
+				Add Part
+			</button>
+
+			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+				{parts?.map((part, index) => (
+					<Card key={index} part={part} onClick={() => openViewModal(part)} />
 				))}
 			</div>
 
-			{/* Modal */}
-			<Transition appear show={isOpen} as={Fragment}>
-				<Dialog as="div" className="relative z-10" onClose={closeModal}>
-					<Transition.Child
-						as={Fragment}
-						enter="ease-out duration-300"
-						enterFrom="opacity-0"
-						enterTo="opacity-100"
-						leave="ease-in duration-200"
-						leaveFrom="opacity-100"
-						leaveTo="opacity-0"
-					>
-						<div className="fixed inset-0 bg-black bg-opacity-50" />
-					</Transition.Child>
+			<Modal isOpen={isViewModalOpen} closeModal={() => setIsViewModalOpen(false)} title={selectedPart?.name ?? "View Part"}>
+			<img src={`http://localhost:8000/${selectedPart?.image}`} alt={selectedPart?.name} className="w-full h-40 object-cover rounded" />
+				<p className="mt-2">Purchase Price: {selectedPart?.purchasePrice}</p>
+				<p>Repair Price: {selectedPart?.repairPrice}</p>
+			</Modal>
 
-					<div className="fixed inset-0 flex items-center justify-center p-4">
-						<Transition.Child
-							as={Fragment}
-							enter="ease-out duration-300"
-							enterFrom="opacity-0 scale-95"
-							enterTo="opacity-100 scale-100"
-							leave="ease-in duration-200"
-							leaveFrom="opacity-100 scale-100"
-							leaveTo="opacity-0 scale-95"
-						>
-							<Dialog.Panel className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-								{selectedPart && (
-									<>
-										<Dialog.Title className="text-xl font-bold">{selectedPart.name}</Dialog.Title>
-										<img src={selectedPart.image} alt={selectedPart.name} className="w-full h-40 object-cover rounded mt-2" />
-										<p className="mt-2">Purchase Price: {selectedPart.purchasePrice}</p>
-										<p>Repair Price: {selectedPart.repairPrice}</p>
-										<Button
-											className="mt-4 px-4 py-2 bg-red-500 text-white rounded w-full"
-											onClick={closeModal}
-										>
-											Close
-										</Button>
-									</>
-								)}
-							</Dialog.Panel>
-						</Transition.Child>
+			<Modal isOpen={isAddModalOpen} closeModal={() => setIsAddModalOpen(false)} title="Add Part">
+				<input
+					type="text"
+					placeholder="Name"
+					name="name"
+					value={part.name}
+					onChange={handleChange}
+					className="border p-2 w-full mt-2"
+				/>
+
+				<input
+					type="file"
+					accept="image/*"
+					onChange={handleImageChange}
+					className="border p-2 w-full mt-2"
+				/>
+
+				{part.image && (
+					<div className="mt-2">
+						<img src={part.image} alt="Part" className="w-full h-40 object-cover rounded" />
 					</div>
-				</Dialog>
-			</Transition>
+				)}
+
+				<input
+					type="number"
+					placeholder="Purchase Price"
+					name="purchasePrice"
+					value={part.purchasePrice}
+					onChange={handleChange}
+					className="border p-2 w-full mt-2"
+				/>
+				<input
+					type="number"
+					placeholder="Repair Price"
+					name="repairPrice"
+					value={part.repairPrice}
+					onChange={handleChange}
+					className="border p-2 w-full mt-2"
+				/>
+				<Button onClick={addPart} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded w-full">
+					Add
+				</Button>
+			</Modal>
 		</div>
 	);
 }

@@ -1,12 +1,11 @@
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from parts.models import Part
 from parts.serializer import PartSerializer
-
-# Create your views here.
 
 @api_view(["GET"])
 def getRoutes(request):
@@ -19,19 +18,15 @@ def getRoutes(request):
 
 @api_view(["POST"])
 def register(request):
-    name = request.POST.get('name')
-    price = request.POST.get('price')
-    repair = request.POST.get('repair')
-    is_repairable = request.POST.get('is_repairable')
+	part = PartSerializer(data=request.data)
+	if not part.is_valid():
+		return Response("Error in Registering Part", 400)
 
-    part = Part(name, price, repair, is_repairable)
-    part.save()
-
-    return Response(name)
+	part.save()
+	return Response("Registered Part Successfully", 200)
 
 @api_view(['GET'])
 def view(request):
-    # Fetch all parts from database
     parts = Part.objects.all()
     serializer = PartSerializer(parts, many=True)
 

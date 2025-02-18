@@ -9,7 +9,11 @@ from revenue.models import Transaction
 
 @api_view(['GET'])
 def get_routes(request):
-    pass
+	routes = [
+		'<int:id>/'
+	]
+
+	return Response(routes)
 
 @api_view(['GET'])
 def get_revenue(request, id):
